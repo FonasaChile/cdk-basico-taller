@@ -21,21 +21,20 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
 4. Launch an AWS Cloud9 m5.large environment in us-west-2 with default settings
 5. Open the IDE environment and clone the provided git repo
 ```
-git clone https://github.com/ejahnke/workshopVpc.git
+git clone [https://github.com/ejahnke/workshopVpc.git](https://github.com/ejahnke/fonasa.git)
 ```
-6. update/workshopVpc/bin/my_vpcmoh_application.ts with your current AWS account number and region
-7. navigate into the recently cloned folder workshopVpc and install required libraries
+6. navigate into the recently cloned folder workshopVpc and install required libraries
 ```
 cd workshopVpc
 ```
 ```
 npm install aws-cdk-lib
 ```
-8. bootstrap the AWS account for CDK deployments
+7. bootstrap the AWS account for CDK deployments
 ```
 cdk bootstrap
 ```
-9. deploy the CDK stack
+8. deploy the CDK stack
 ```
 cdk deploy
 ```
