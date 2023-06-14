@@ -18,7 +18,7 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
 1. Provision your AWS account via https://dashboard.eventengine.run/dashboard by entering the event hash provided by AWS
 2. Select Email OTP option and enter your email used for registration
 3. Follow login steps and open the AWS console
-4. Launch an AWS Cloud9 m5.large environment in ca-central-1 with default settings
+4. Launch an AWS Cloud9 m5.large environment in us-west-2 with default settings
 5. Open the IDE environment and clone the provided git repo
 ```
 git clone https://github.com/ejahnke/workshopVpc.git
@@ -35,7 +35,7 @@ npm install aws-cdk-lib
 ```
 cdk bootstrap
 ```
-9. deploy the CDK stack which will create an AWS CodeCommit repository and an AWS CodePipeline for our subsequent deployments
+9. deploy the CDK stack
 ```
 cdk deploy
 ```
