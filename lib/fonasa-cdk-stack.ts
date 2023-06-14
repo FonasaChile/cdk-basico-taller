@@ -1,5 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
-import { Construct } from 'constructs';
+import { Construct, DependencyGroup } from 'constructs';
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as ecs from "aws-cdk-lib/aws-ecs";
@@ -31,6 +31,21 @@ export class FonasaCdkStack extends cdk.Stack {
       }],
     });
     
+    const secret = new Secret(this, "DatabaseCredentials", {
+      generateSecretString: {
+        excludePunctuation: true,
+        secretStringTemplate: JSON.stringify({
+          username: 'dbadmin',
+        }),
+        generateStringKey: "password",
+      },
+    });
+    
+    new CfnOutput(this, "secretName", { value: secret.secretArn });
+    
+    const secretDependency = new DependencyGroup();
+    secretDependency.add(secret);
+    
        
     const clusterCustomImage = new ecs.Cluster(this, "MyVpcClusterCustomImage", {
       vpc: mohVpc
@@ -46,13 +61,13 @@ export class FonasaCdkStack extends cdk.Stack {
       assignPublicIp: false, 
       cpu: 256, // Default is 256
       desiredCount: 2, // Default is 1
-      taskImageOptions: { image: ecs.ContainerImage.fromAsset("./DockerImage"), environment: {MYDBURL:"amazon.rds.com", MYDBUSER: "ejahnke"}, },
+      taskImageOptions: { image: ecs.ContainerImage.fromAsset("./DockerImage"), environment: {SECRETARN: secret.secretArn}, },
       taskSubnets: {subnetGroupName: "privateSubnets"},
       memoryLimitMiB: 1024, // Default is 512
       publicLoadBalancer: true // Default is true
     });
     
-    
+    loadBalancedFargateServiceCustomImage.node.addDependency(secretDependency);
     
     loadBalancedFargateServiceCustomImage.taskDefinition.taskRole.attachInlinePolicy(new Policy(this, 'fargate-task-policy', {
         statements: [fargateTaskPolicy],
@@ -72,17 +87,7 @@ export class FonasaCdkStack extends cdk.Stack {
     });
     
     
-    const secret = new Secret(this, "DatabaseCredentials", {
-      generateSecretString: {
-        excludePunctuation: true,
-        secretStringTemplate: JSON.stringify({
-          username: 'dbadmin',
-        }),
-        generateStringKey: "password",
-      },
-    });
-    
-    new CfnOutput(this, "secretName", { value: secret.secretArn });
+
     
     const dbSecGroup = new ec2.SecurityGroup(this, 'db-security-group', {
         vpc: mohVpc,
