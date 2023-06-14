@@ -43,52 +43,6 @@ export class FonasaCdkStack extends cdk.Stack {
     
     new CfnOutput(this, "secretName", { value: secret.secretArn });
     
-    const secretDependency = new DependencyGroup();
-    secretDependency.add(secret);
-    
-       
-    const clusterCustomImage = new ecs.Cluster(this, "MyVpcClusterCustomImage", {
-      vpc: fonasaVpc
-    });
-    
-    const fargateTaskPolicy = new PolicyStatement({
-      actions: ['secretsmanager:*', 's3:*','cloudformation:*'],
-      resources: ['*'],
-    });
-    
-    const loadBalancedFargateServiceCustomImage = new ecs_patterns.ApplicationLoadBalancedFargateService(this, "MyVpcFargateServiceCustomImage", {
-      cluster: clusterCustomImage, // Required
-      assignPublicIp: false, 
-      cpu: 256, // Default is 256
-      desiredCount: 2, // Default is 1
-      taskImageOptions: { image: ecs.ContainerImage.fromAsset("./DockerImage"), environment: {SECRETARN: secret.secretArn}, },
-      taskSubnets: {subnetGroupName: "privateSubnets"},
-      memoryLimitMiB: 1024, // Default is 512
-      publicLoadBalancer: true // Default is true
-    });
-    
-    loadBalancedFargateServiceCustomImage.node.addDependency(secretDependency);
-    
-    loadBalancedFargateServiceCustomImage.taskDefinition.taskRole.attachInlinePolicy(new Policy(this, 'fargate-task-policy', {
-        statements: [fargateTaskPolicy],
-      }));
-    
-    const scalableTargetCustomImage = loadBalancedFargateServiceCustomImage.service.autoScaleTaskCount({
-      minCapacity: 1,
-      maxCapacity: 20,
-    });
-    
-    scalableTargetCustomImage.scaleOnCpuUtilization('CpuScaling', {
-      targetUtilizationPercent: 50,
-    });
-    
-    scalableTargetCustomImage.scaleOnMemoryUtilization('MemoryScaling', {
-      targetUtilizationPercent: 50,
-    });
-    
-    
-
-    
     const dbSecGroup = new ec2.SecurityGroup(this, 'db-security-group', {
         vpc: fonasaVpc,
         allowAllOutbound: true,
@@ -118,5 +72,51 @@ export class FonasaCdkStack extends cdk.Stack {
       defaultDatabaseName: 'pgdb',
       storageEncrypted: true,
     });
+    
+    const fargateDependencies = new DependencyGroup();
+    fargateDependencies.add(secret);
+    fargateDependencies.add(dbCluster);
+    
+       
+    const clusterCustomImage = new ecs.Cluster(this, "MyVpcClusterCustomImage", {
+      vpc: fonasaVpc
+    });
+    
+    const fargateTaskPolicy = new PolicyStatement({
+      actions: ['secretsmanager:*'],
+      resources: ['*'],
+    });
+    
+    const loadBalancedFargateServiceCustomImage = new ecs_patterns.ApplicationLoadBalancedFargateService(this, "MyVpcFargateServiceCustomImage", {
+      cluster: clusterCustomImage, // Required
+      assignPublicIp: false, 
+      cpu: 256, // Default is 256
+      desiredCount: 2, // Default is 1
+      taskImageOptions: { image: ecs.ContainerImage.fromAsset("./DockerImage"), environment: {SECRETARN: secret.secretArn}, },
+      taskSubnets: {subnetGroupName: "privateSubnets"},
+      memoryLimitMiB: 1024, // Default is 512
+      publicLoadBalancer: true // Default is true
+    });
+    
+    loadBalancedFargateServiceCustomImage.node.addDependency(fargateDependencies);
+    
+    loadBalancedFargateServiceCustomImage.taskDefinition.taskRole.attachInlinePolicy(new Policy(this, 'fargate-task-policy', {
+        statements: [fargateTaskPolicy],
+      }));
+    
+    const scalableTargetCustomImage = loadBalancedFargateServiceCustomImage.service.autoScaleTaskCount({
+      minCapacity: 1,
+      maxCapacity: 20,
+    });
+    
+    scalableTargetCustomImage.scaleOnCpuUtilization('CpuScaling', {
+      targetUtilizationPercent: 50,
+    });
+    
+    scalableTargetCustomImage.scaleOnMemoryUtilization('MemoryScaling', {
+      targetUtilizationPercent: 50,
+    });
+    
+    
   }
 }
