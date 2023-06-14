@@ -13,7 +13,7 @@ export class FonasaCdkStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const mohVpc = new ec2.Vpc(this, "FonasaVpc", {
+    const fonasaVpc = new ec2.Vpc(this, "FonasaVpc", {
       cidr: "10.0.0.0/16",
       maxAzs: 2,
       natGateways: 1,
@@ -48,7 +48,7 @@ export class FonasaCdkStack extends cdk.Stack {
     
        
     const clusterCustomImage = new ecs.Cluster(this, "MyVpcClusterCustomImage", {
-      vpc: mohVpc
+      vpc: fonasaVpc
     });
     
     const fargateTaskPolicy = new PolicyStatement({
@@ -90,12 +90,12 @@ export class FonasaCdkStack extends cdk.Stack {
 
     
     const dbSecGroup = new ec2.SecurityGroup(this, 'db-security-group', {
-        vpc: mohVpc,
+        vpc: fonasaVpc,
         allowAllOutbound: true,
         description: 'DB Security Group'
     });
     
-    dbSecGroup.addIngressRule(ec2.Peer.ipv4(mohVpc.vpcCidrBlock), ec2.Port.tcp(5432), 'PostgresSQL rule');
+    dbSecGroup.addIngressRule(ec2.Peer.ipv4(fonasaVpc.vpcCidrBlock), ec2.Port.tcp(5432), 'PostgresSQL rule');
     
     const dbCluster = new rds.DatabaseCluster(this, 'pgdb', {
       engine: rds.DatabaseClusterEngine.auroraPostgres({
@@ -108,7 +108,7 @@ export class FonasaCdkStack extends cdk.Stack {
           ec2.InstanceClass.BURSTABLE3,
           ec2.InstanceSize.LARGE
         ),
-        vpc: mohVpc,
+        vpc: fonasaVpc,
         securityGroups: [dbSecGroup],
         enablePerformanceInsights: true,
         publiclyAccessible: false
