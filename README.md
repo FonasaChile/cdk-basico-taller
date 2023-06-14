@@ -25,7 +25,7 @@ git clone https://github.com/ejahnke/fonasa.git
 ```
 6. navigate into the recently cloned folder workshopVpc and install required libraries
 ```
-cd workshopVpc
+cd fonasa
 ```
 ```
 npm install aws-cdk-lib
