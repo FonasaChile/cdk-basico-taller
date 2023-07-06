@@ -15,9 +15,9 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
 
 ## Deployment steps
 
-1. Provision your AWS account via https://dashboard.eventengine.run/dashboard by entering the event hash provided by AWS
+1. Provision your AWS account via https://xxx by entering the event hash provided by AWS
 ```
-8ae9-19135f3624-a2
+xx-x-xxx
 ```
 2. Select Email OTP option and enter your email used for registration
 3. Follow login steps and open the AWS console
